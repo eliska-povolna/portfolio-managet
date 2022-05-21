@@ -1,0 +1,1 @@
+{"apple":{"date":"2022-04-25","amount":1.0,"specific_info":"AAPL","price":300.0,"name":"apple","type":"Stock"},"eth":{"date":"2022-04-25","amount":1.0,"specific_info":"ETH","price":2000.0,"name":"eth","type":"Crypto"},"fixedtest":{"date":"2022-04-25","amount":1.0,"specific_info":"0.1","price":30000.0,"name":"fixedtest","type":"Fixed rate"}}
