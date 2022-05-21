@@ -56,10 +56,18 @@ public class ListController {
      * Updates values and shows the portfolio as a listview.
      */
     public void show() {
-        List<String> namelist = ManagerApplication.getPortfolioValues().stream().map(Investment::getInfo).collect(Collectors.toList());
-        ObservableList<String> observableList = FXCollections.observableArrayList();
-        observableList.setAll(namelist);
-        listview.setItems(observableList);
+        try {
+            List<String> namelist = ManagerApplication.getPortfolioValues().stream().map(Investment::getInfo).collect(Collectors.toList());
+            ObservableList<String> observableList = FXCollections.observableArrayList();
+            observableList.setAll(namelist);
+            listview.setItems(observableList);
+        } catch (Exception e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText("An error occured");
+            alert.setContentText("One of possible reasons might be your internet connection or wrong format of portfolio.json.");
+            alert.show();
+        }
     }
 }
 

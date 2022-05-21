@@ -55,8 +55,8 @@ public class ManagerApplication extends Application {
             value = i.amount * i.price * (1 + Double.parseDouble(i.specific_info) * (diff / 365.0));
         }
         if (i.type.equals("Stock")) {
-            String url = "https://query1.finance.yahoo.com/v7/finance/quote?lang=en-US&region=US&corsDomain=finance.yahoo.com&symbols=AAPL"
-                    + "&limit=1";
+            String url = "https://query1.finance.yahoo.com/v7/finance/quote?lang=en-US&region=US&corsDomain=finance.yahoo.com&symbols="
+                    + i.specific_info;
             InputStream is = new URL(url).openStream();
             BufferedReader rd = new BufferedReader(new InputStreamReader(is));
             StringBuilder sb = new StringBuilder();
@@ -67,7 +67,7 @@ public class ManagerApplication extends Application {
             JSONParser jsonparser = new JSONParser();
             JSONObject json = (JSONObject) jsonparser.parse(sb.toString());
             JSONArray arr = (JSONArray) ((JSONObject) json.get("quoteResponse")).get("result");
-            value = (double) ((JSONObject) arr.get(0)).get("ask");
+            value = (double) ((JSONObject) arr.get(0)).get("ask") * i.amount;
         }
         if (i.type.equals("Crypto")) {
             String url = "https://min-api.cryptocompare.com/data/price?fsym="
@@ -78,9 +78,11 @@ public class ManagerApplication extends Application {
             StringBuilder sb = new StringBuilder();
             int cp;
             while ((cp = rd.read()) != -1) {
-                if (Character.isDigit((char) cp) | (char) cp == '.') sb.append((char) cp);
+                sb.append((char) cp);
             }
-            value = Double.parseDouble(sb.toString()) * i.amount;
+            JSONParser jsonparser = new JSONParser();
+            JSONObject json = (JSONObject) jsonparser.parse(sb.toString());
+            value = ((double) json.get("USD")) * i.amount;
         }
         return value;
     }
@@ -105,26 +107,22 @@ public class ManagerApplication extends Application {
      * If it is unable to read from portfolio file, returns an empty list.
      * @return an arraylist of Investment objects from portfolio.json
      */
-    public static ArrayList<Investment> getPortfolioValues() {
+    public static ArrayList<Investment> getPortfolioValues() throws IOException, ParseException {
         JSONParser parser = new JSONParser();
         JSONObject portfolio;
         ArrayList<Investment> portfolioList = new ArrayList<>();
-        try {
-            portfolio = (JSONObject) parser.parse(new FileReader("portfolio.json"));
-            Set investments = portfolio.keySet();
-            for (Object inv : investments) {
-                String n = ((JSONObject) portfolio.get(inv)).get("name").toString();
-                String t = ((JSONObject) portfolio.get(inv)).get("type").toString();
-                LocalDate d = LocalDate.parse(((JSONObject) portfolio.get(inv)).get("date").toString());
-                double p = Double.parseDouble(((JSONObject) portfolio.get(inv)).get("price").toString());
-                double a = Double.parseDouble(((JSONObject) portfolio.get(inv)).get("amount").toString());
-                String s = ((JSONObject) portfolio.get(inv)).get("specific_info").toString();
-                Investment i = new Investment(n, t, d, p, a, s);
-                i.value = getValue(i);
-                portfolioList.add(i);
-            }
-        } catch (IOException | ParseException e) {
-            // just return an empty list
+        portfolio = (JSONObject) parser.parse(new FileReader("portfolio.json"));
+        Set investments = portfolio.keySet();
+        for (Object inv : investments) {
+            String n = ((JSONObject) portfolio.get(inv)).get("name").toString();
+            String t = ((JSONObject) portfolio.get(inv)).get("type").toString();
+            LocalDate d = LocalDate.parse(((JSONObject) portfolio.get(inv)).get("date").toString());
+            double p = Double.parseDouble(((JSONObject) portfolio.get(inv)).get("price").toString());
+            double a = Double.parseDouble(((JSONObject) portfolio.get(inv)).get("amount").toString());
+            String s = ((JSONObject) portfolio.get(inv)).get("specific_info").toString();
+            Investment i = new Investment(n, t, d, p, a, s);
+            i.value = getValue(i);
+            portfolioList.add(i);
         }
         return portfolioList;
     }
@@ -132,9 +130,11 @@ public class ManagerApplication extends Application {
     /**
      * Adds a new investment to the portfolio, saves it to portfolio.json.
      * @param i an Investment object to add to the portfolio
-     * @throws IOException if it is unable to write to the file
+     * @throws IOException if it is unable to write to the file or
+     * @throws ParseException if it wasn't able to parse information about the investment
      */
-    public static void addToPortfolio(Investment i) throws IOException {
+    public static void addToPortfolio(Investment i) throws IOException, ParseException {
+        double value = getValue(i);
         JSONObject portfolio = getPortfolioJSON();
         JSONObject investmentObject = new JSONObject();
         if (i.date.isAfter(LocalDate.now())) throw new InvalidParameterException();
@@ -171,7 +171,7 @@ public class ManagerApplication extends Application {
      * Returns the value of the whole portfolio according to its market valuation
      * @return the value of the whole portfolio from portfolio.json
      */
-    public static double getPortfolioValue() {
+    public static double getPortfolioValue() throws IOException, ParseException {
         double value = 0.0;
         List<Investment> portfolio = getPortfolioValues();
         for (Investment inv : portfolio) {
@@ -184,7 +184,7 @@ public class ManagerApplication extends Application {
      * Returns the return of the portfolio in %
      * @return the return of the portfolio in %
      */
-    public static double getPortfolioGrowth() {
+    public static double getPortfolioGrowth() throws IOException, ParseException {
         double value = getPortfolioValue();
         double cost = 0.0;
         List<Investment> portfolio = getPortfolioValues();

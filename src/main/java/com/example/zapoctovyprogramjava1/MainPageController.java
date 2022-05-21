@@ -73,9 +73,17 @@ public class MainPageController {
      */
     @FXML
     protected void refresh() {
-        double value = ManagerApplication.getPortfolioValue();
-        portfolioValue.setText(String.format("Value of your portfolio: %.2f USD", value));
-        double growth = ManagerApplication.getPortfolioGrowth();
-        portfolioGrowth.setText(String.format("Return of your portfolio: %.4f %%", growth));
+        try {
+            double value = ManagerApplication.getPortfolioValue();
+            portfolioValue.setText(String.format("Value of your portfolio: %.2f USD", value));
+            double growth = ManagerApplication.getPortfolioGrowth();
+            portfolioGrowth.setText(String.format("Return of your portfolio: %.4f %%", growth));
+        } catch (Exception e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText("An error occured");
+            alert.setContentText("One of possible reasons might be your internet connection or wrong format of portfolio.json.");
+            alert.show();
+        }
     }
 }
