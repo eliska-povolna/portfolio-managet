@@ -21,11 +21,11 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 /**
- * The main application
+ * Simple application for portfolio management.
+ * Allows the user to add investments to the portfolio, show the whole portfolio or remove investments.
+ * Calculates the total value of portfolio and the return of it.
  */
 public class ManagerApplication extends Application {
-    public FXMLLoader fxmlLoader = new FXMLLoader(ManagerApplication.class.getResource("main_page.fxml"));
-
     /**
      * Starts the whole application
      * @param stage of JavaFX
@@ -33,6 +33,7 @@ public class ManagerApplication extends Application {
      */
     @Override
     public void start(Stage stage) throws IOException {
+        FXMLLoader fxmlLoader = new FXMLLoader(ManagerApplication.class.getResource("main_page.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 320, 240);
         stage.setTitle("Portfolio manager");
         stage.setScene(scene);
